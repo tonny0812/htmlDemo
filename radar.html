@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Radar</title>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+
+<script type='text/javascript'>
+	function rd(n, m) {
+		var c = m - n + 1;
+		return Math.floor(Math.random() * c + n);
+	}
+	$(function() {
+		var $beam = $('#beam');
+		deg = 0, h = $(window).height(), w = $(window).width(),
+				rad = h > w ? w * 0.9 / 2 : h * 0.9 / 2;
+		$('#radar').height(2 * rad);
+		$('#radar').width(2 * rad);
+		$(window).resize(function() {
+
+		});
+		initRadar();
+		function initRadar() {
+			(function generateBlips() {
+				$('#beam').children().remove();
+				var arr = [];
+				for (var index = 0; index < 6; index++) {
+					var _deg = 0;
+					if (index % 2 == 0) {
+						_deg = rd(0, 180);
+					} else {
+						_deg = rd(180, 360);
+					}
+					var _rp = rd(rad / 2, rad - 10);
+					var _x = Math.floor(Math.sin(_deg) * _rp + rad);
+					var _y = Math.floor((Math.cos(_deg)) * _rp + rad);
+					var _color = '';
+					if (_x % 2 == 0) {
+						_color = 'red';
+					}
+					var prex = '业务系统-';
+					var p = {
+						x : _x,
+						y : _y,
+						name : prex + (index + 1),
+						color : _color
+					};
+					var content = '';
+					if ('red' == p.color) {
+						content = '<div class="point" data-alert="true" data-x="'+p.x+'" data-y="'+p.y+'" style="box-shadow:0 0 10px 10px red"><span style="">'
+								+ p.name + '</span></div>';
+					} else {
+						content = '<div class="point" data-alert="false" data-x="'+p.x+'" data-y="'+p.y+'" style=""><span style="">'
+								+ p.name + '</span></div>';
+					}
+					$('#blips').append(content);
+					arr[index] = p;
+				}
+				var $point = $('.point');
+				$point
+						.each(function() {
+							var pos = $(this).data(), getAtan = Math.atan2(
+									pos.x - rad, pos.y - rad), getDeg = (-getAtan
+									/ (Math.PI / 180) + 180) | 0;
+							// Read/set positions and store degree
+							$(this).css({
+								left : pos.x,
+								top : pos.y
+							}).attr('data-atDeg', getDeg);
+						});
+			})();
+
+			(function rotate() {
+				$beam.css({
+					transform : 'rotate(' + deg + 'deg)'
+				}); // Radar rotation
+				$('[data-atDeg=' + deg + ']')
+						.each(
+								function() {
+									var hasAlert = $(this).data().alert;
+									if (hasAlert) {
+										$(this).stop().fadeTo(0, 1).fadeTo(
+												1500, 1); // Animate dot at deg
+										$(this)
+												.css(
+														{
+															"-webkit-animation" : "twinkling 1s infinite ease-in-out"
+														});
+									} else {
+										$(this).stop().fadeTo(0, 1).fadeTo(
+												1500, 0.0); // Animate dot at deg
+									}
+								});
+				deg = ++deg % 360; // Increment and reset to 0 at 360
+				setTimeout(rotate, 12); // LOOP
+			})();
+		}
+	});
+</script>
+
+<style>
+html {
+	height: 100%;
+	background-color: #111;
+	font-size: 10px;
+}
+
+body {
+	background-image: linear-gradient(0deg, transparent 24%, rgba(32, 255, 77, 0.15)
+		25%, rgba(32, 255, 77, 0.15) 26%, transparent 27%, transparent 74%,
+		rgba(32, 255, 77, 0.15) 75%, rgba(32, 255, 77, 0.15) 76%, transparent
+		77%, transparent),
+		linear-gradient(90deg, transparent 24%, rgba(32, 255, 77, 0.15) 25%,
+		rgba(32, 255, 77, 0.15) 26%, transparent 27%, transparent 74%,
+		rgba(32, 255, 77, 0.15) 75%, rgba(32, 255, 77, 0.15) 76%, transparent
+		77%, transparent);
+	background-size: 7rem 7rem;
+	background-position: -5.2rem -5.2rem;
+	width: 100%;
+	height: 100%;
+	position: relative;
+	padding: 0;
+	margin: 0;
+}
+
+span {
+	display: inline-block;
+	width: 80px;
+	color: white;
+	margin-left: -20px;
+	margin-top: 8px;
+}
+
+#radar {
+	position: relative;
+	overflow: hidden;
+	min-width: 100px;
+	min-height: 100px;
+	left: 50%;
+	top: 50%;
+	background: -webkit-radial-gradient(center, rgba(32, 255, 77, 0.3) 0%,
+		rgba(32, 255, 77, 0) 75%),
+		-webkit-repeating-radial-gradient(rgba(32, 255, 77, 0) 5.8%,
+		rgba(32, 255, 77, 0) 18%, #20ff4d 18.6%, rgba(32, 255, 77, 0) 18.9%),
+		-webkit-linear-gradient(90deg, rgba(32, 255, 77, 0) 49.5%, #20ff4d 50%,
+		#20ff4d 50%, rgba(32, 255, 77, 0) 50.2%),
+		-webkit-linear-gradient(0deg, rgba(32, 255, 77, 0) 49.5%, #20ff4d 50%,
+		#20ff4d 50%, rgba(32, 255, 77, 0) 50.2%);
+	border-radius: 50%;
+	border: 0.2rem solid #20ff4d;
+	transform: translate(-50%, -50%);
+}
+
+#beam {
+	content: ' ';
+	display: block;
+	background-image: linear-gradient(44deg, rgba(0, 255, 51, 0) 50%,
+		#00ff33 100%);
+	width: 50%;
+	height: 50%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	animation: radar-beam 5s infinite;
+	animation-timing-function: linear;
+	transform-origin: bottom right;
+	border-radius: 100% 0 0 0;
+}
+
+.point {
+	background: #fff;
+	position: absolute;
+	border-radius: 50%;
+	width: 5px;
+	height: 5px;
+	margin: -2px;
+	box-shadow: 0 0 15px 15px rgba(100, 255, 0, 0.5);
+	opacity: 0.0;
+}
+
+@-webkit-keyframes twinkling { 
+	0%{
+		opacity: 0.2;
+	}
+	100%{
+		opacity:1;
+	}
+}
+</style>
+</head>
+
+<body>
+	<div id="radar" style="display: black;">
+		<div id="beam"></div>
+		<div id="blips"></div>
+	</div>
+</body>
+
+</html>
